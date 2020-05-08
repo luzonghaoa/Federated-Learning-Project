@@ -1,0 +1,25 @@
+// python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. FederatedML.proto
+syntax = "proto3";
+
+message Model {
+    string model = 1;
+    int32 id = 2;
+    int32 gr = 3;
+}
+
+message Option {
+    int32 op = 1;
+    int32 gr = 2;
+}
+
+message Empty {
+    int32 value = 1;
+}
+
+
+
+service FederatedML{
+    rpc GetModel(Option) returns (Model) {} 
+    rpc SendModel(Model) returns (Empty) {}
+}
+
