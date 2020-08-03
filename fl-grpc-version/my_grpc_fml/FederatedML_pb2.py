@@ -18,7 +18,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=b'\n\x11\x46\x65\x64\x65ratedML.proto\".\n\x05Model\x12\r\n\x05model\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\x05\x12\n\n\x02gr\x18\x03 \x01(\x05\" \n\x06Option\x12\n\n\x02op\x18\x01 \x01(\x05\x12\n\n\x02gr\x18\x02 \x01(\x05\"\x16\n\x05\x45mpty\x12\r\n\x05value\x18\x01 \x01(\x05\x32K\n\x0b\x46\x65\x64\x65ratedML\x12\x1d\n\x08GetModel\x12\x07.Option\x1a\x06.Model\"\x00\x12\x1d\n\tSendModel\x12\x06.Model\x1a\x06.Empty\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\x11\x46\x65\x64\x65ratedML.proto\":\n\x05Model\x12\r\n\x05model\x18\x01 \x01(\t\x12\n\n\x02id\x18\x02 \x01(\x05\x12\n\n\x02gr\x18\x03 \x01(\x05\x12\n\n\x02ll\x18\x04 \x01(\x02\"8\n\x06Option\x12\n\n\x02op\x18\x01 \x01(\x05\x12\n\n\x02id\x18\x02 \x01(\x05\x12\n\n\x02gr\x18\x03 \x01(\x05\x12\n\n\x02ll\x18\x04 \x01(\x02\"\x16\n\x05\x45mpty\x12\r\n\x05value\x18\x01 \x01(\x05\"\x14\n\x04Mark\x12\x0c\n\x04\x66lag\x18\x01 \x01(\x05\x32\xd2\x01\n\x0b\x46\x65\x64\x65ratedML\x12\x17\n\x05Regis\x12\x05.Mark\x1a\x05.Mark\"\x00\x12\x1c\n\x08GetReady\x12\x07.Option\x1a\x05.Mark\"\x00\x12\x1d\n\x08GetModel\x12\x07.Option\x1a\x06.Model\"\x00\x12\x1d\n\tSendModel\x12\x06.Model\x1a\x06.Empty\"\x00\x12&\n\x0fGetModel_stream\x12\x07.Option\x1a\x06.Model\"\x00\x30\x01\x12&\n\x10SendModel_stream\x12\x06.Model\x1a\x06.Empty\"\x00(\x01\x62\x06proto3'
 )
 
 
@@ -52,6 +52,13 @@ _MODEL = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='ll', full_name='Model.ll', index=3,
+      number=4, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -65,7 +72,7 @@ _MODEL = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=21,
-  serialized_end=67,
+  serialized_end=79,
 )
 
 
@@ -84,9 +91,23 @@ _OPTION = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='gr', full_name='Option.gr', index=1,
+      name='id', full_name='Option.id', index=1,
       number=2, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='gr', full_name='Option.gr', index=2,
+      number=3, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='ll', full_name='Option.ll', index=3,
+      number=4, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
@@ -102,8 +123,8 @@ _OPTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=69,
-  serialized_end=101,
+  serialized_start=81,
+  serialized_end=137,
 )
 
 
@@ -133,13 +154,45 @@ _EMPTY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=103,
-  serialized_end=125,
+  serialized_start=139,
+  serialized_end=161,
+)
+
+
+_MARK = _descriptor.Descriptor(
+  name='Mark',
+  full_name='Mark',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='flag', full_name='Mark.flag', index=0,
+      number=1, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=163,
+  serialized_end=183,
 )
 
 DESCRIPTOR.message_types_by_name['Model'] = _MODEL
 DESCRIPTOR.message_types_by_name['Option'] = _OPTION
 DESCRIPTOR.message_types_by_name['Empty'] = _EMPTY
+DESCRIPTOR.message_types_by_name['Mark'] = _MARK
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 Model = _reflection.GeneratedProtocolMessageType('Model', (_message.Message,), {
@@ -163,6 +216,13 @@ Empty = _reflection.GeneratedProtocolMessageType('Empty', (_message.Message,), {
   })
 _sym_db.RegisterMessage(Empty)
 
+Mark = _reflection.GeneratedProtocolMessageType('Mark', (_message.Message,), {
+  'DESCRIPTOR' : _MARK,
+  '__module__' : 'FederatedML_pb2'
+  # @@protoc_insertion_point(class_scope:Mark)
+  })
+_sym_db.RegisterMessage(Mark)
+
 
 
 _FEDERATEDML = _descriptor.ServiceDescriptor(
@@ -171,13 +231,31 @@ _FEDERATEDML = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=127,
-  serialized_end=202,
+  serialized_start=186,
+  serialized_end=396,
   methods=[
+  _descriptor.MethodDescriptor(
+    name='Regis',
+    full_name='FederatedML.Regis',
+    index=0,
+    containing_service=None,
+    input_type=_MARK,
+    output_type=_MARK,
+    serialized_options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='GetReady',
+    full_name='FederatedML.GetReady',
+    index=1,
+    containing_service=None,
+    input_type=_OPTION,
+    output_type=_MARK,
+    serialized_options=None,
+  ),
   _descriptor.MethodDescriptor(
     name='GetModel',
     full_name='FederatedML.GetModel',
-    index=0,
+    index=2,
     containing_service=None,
     input_type=_OPTION,
     output_type=_MODEL,
@@ -186,7 +264,25 @@ _FEDERATEDML = _descriptor.ServiceDescriptor(
   _descriptor.MethodDescriptor(
     name='SendModel',
     full_name='FederatedML.SendModel',
-    index=1,
+    index=3,
+    containing_service=None,
+    input_type=_MODEL,
+    output_type=_EMPTY,
+    serialized_options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='GetModel_stream',
+    full_name='FederatedML.GetModel_stream',
+    index=4,
+    containing_service=None,
+    input_type=_OPTION,
+    output_type=_MODEL,
+    serialized_options=None,
+  ),
+  _descriptor.MethodDescriptor(
+    name='SendModel_stream',
+    full_name='FederatedML.SendModel_stream',
+    index=5,
     containing_service=None,
     input_type=_MODEL,
     output_type=_EMPTY,

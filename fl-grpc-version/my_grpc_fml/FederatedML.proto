@@ -5,21 +5,30 @@ message Model {
     string model = 1;
     int32 id = 2;
     int32 gr = 3;
+    float ll = 4;
 }
 
 message Option {
     int32 op = 1;
-    int32 gr = 2;
+    int32 id = 2;
+    int32 gr = 3;
+    float ll = 4;
 }
 
 message Empty {
     int32 value = 1;
 }
 
-
+message Mark {
+    int32 flag = 1;
+}
 
 service FederatedML{
+    rpc Regis(Mark) returns (Mark) {}
+    rpc GetReady(Option) returns (Mark){}
     rpc GetModel(Option) returns (Model) {} 
     rpc SendModel(Model) returns (Empty) {}
+    rpc GetModel_stream(Option) returns (stream Model) {} 
+    rpc SendModel_stream(stream Model) returns (Empty) {}
 }
 

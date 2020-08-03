@@ -13,6 +13,16 @@ class FederatedMLStub(object):
         Args:
             channel: A grpc.Channel.
         """
+        self.Regis = channel.unary_unary(
+                '/FederatedML/Regis',
+                request_serializer=FederatedML__pb2.Mark.SerializeToString,
+                response_deserializer=FederatedML__pb2.Mark.FromString,
+                )
+        self.GetReady = channel.unary_unary(
+                '/FederatedML/GetReady',
+                request_serializer=FederatedML__pb2.Option.SerializeToString,
+                response_deserializer=FederatedML__pb2.Mark.FromString,
+                )
         self.GetModel = channel.unary_unary(
                 '/FederatedML/GetModel',
                 request_serializer=FederatedML__pb2.Option.SerializeToString,
@@ -23,10 +33,32 @@ class FederatedMLStub(object):
                 request_serializer=FederatedML__pb2.Model.SerializeToString,
                 response_deserializer=FederatedML__pb2.Empty.FromString,
                 )
+        self.GetModel_stream = channel.unary_stream(
+                '/FederatedML/GetModel_stream',
+                request_serializer=FederatedML__pb2.Option.SerializeToString,
+                response_deserializer=FederatedML__pb2.Model.FromString,
+                )
+        self.SendModel_stream = channel.stream_unary(
+                '/FederatedML/SendModel_stream',
+                request_serializer=FederatedML__pb2.Model.SerializeToString,
+                response_deserializer=FederatedML__pb2.Empty.FromString,
+                )
 
 
 class FederatedMLServicer(object):
     """Missing associated documentation comment in .proto file"""
+
+    def Regis(self, request, context):
+        """Missing associated documentation comment in .proto file"""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetReady(self, request, context):
+        """Missing associated documentation comment in .proto file"""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
 
     def GetModel(self, request, context):
         """Missing associated documentation comment in .proto file"""
@@ -40,9 +72,31 @@ class FederatedMLServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetModel_stream(self, request, context):
+        """Missing associated documentation comment in .proto file"""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def SendModel_stream(self, request_iterator, context):
+        """Missing associated documentation comment in .proto file"""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_FederatedMLServicer_to_server(servicer, server):
     rpc_method_handlers = {
+            'Regis': grpc.unary_unary_rpc_method_handler(
+                    servicer.Regis,
+                    request_deserializer=FederatedML__pb2.Mark.FromString,
+                    response_serializer=FederatedML__pb2.Mark.SerializeToString,
+            ),
+            'GetReady': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetReady,
+                    request_deserializer=FederatedML__pb2.Option.FromString,
+                    response_serializer=FederatedML__pb2.Mark.SerializeToString,
+            ),
             'GetModel': grpc.unary_unary_rpc_method_handler(
                     servicer.GetModel,
                     request_deserializer=FederatedML__pb2.Option.FromString,
@@ -50,6 +104,16 @@ def add_FederatedMLServicer_to_server(servicer, server):
             ),
             'SendModel': grpc.unary_unary_rpc_method_handler(
                     servicer.SendModel,
+                    request_deserializer=FederatedML__pb2.Model.FromString,
+                    response_serializer=FederatedML__pb2.Empty.SerializeToString,
+            ),
+            'GetModel_stream': grpc.unary_stream_rpc_method_handler(
+                    servicer.GetModel_stream,
+                    request_deserializer=FederatedML__pb2.Option.FromString,
+                    response_serializer=FederatedML__pb2.Model.SerializeToString,
+            ),
+            'SendModel_stream': grpc.stream_unary_rpc_method_handler(
+                    servicer.SendModel_stream,
                     request_deserializer=FederatedML__pb2.Model.FromString,
                     response_serializer=FederatedML__pb2.Empty.SerializeToString,
             ),
@@ -62,6 +126,38 @@ def add_FederatedMLServicer_to_server(servicer, server):
  # This class is part of an EXPERIMENTAL API.
 class FederatedML(object):
     """Missing associated documentation comment in .proto file"""
+
+    @staticmethod
+    def Regis(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/FederatedML/Regis',
+            FederatedML__pb2.Mark.SerializeToString,
+            FederatedML__pb2.Mark.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetReady(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/FederatedML/GetReady',
+            FederatedML__pb2.Option.SerializeToString,
+            FederatedML__pb2.Mark.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def GetModel(request,
@@ -90,6 +186,38 @@ class FederatedML(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/FederatedML/SendModel',
+            FederatedML__pb2.Model.SerializeToString,
+            FederatedML__pb2.Empty.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetModel_stream(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(request, target, '/FederatedML/GetModel_stream',
+            FederatedML__pb2.Option.SerializeToString,
+            FederatedML__pb2.Model.FromString,
+            options, channel_credentials,
+            call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def SendModel_stream(request_iterator,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.stream_unary(request_iterator, target, '/FederatedML/SendModel_stream',
             FederatedML__pb2.Model.SerializeToString,
             FederatedML__pb2.Empty.FromString,
             options, channel_credentials,

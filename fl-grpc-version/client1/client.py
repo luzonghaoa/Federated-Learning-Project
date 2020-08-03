@@ -1,9 +1,12 @@
 import numpy as np
 import random
 import base64
+import pickle
 import grpc
 import copy
 import torch
+import math
+import time
 from torch import nn
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, Dataset
@@ -14,21 +17,23 @@ import FederatedML_pb2
 import FederatedML_pb2_grpc
 
 client_id = 1
-client_nums = 3
-model = 'cnn'
-dataset = 'mnist'
+client_nums = 20
+#dataset = 'cifar'
+dataset = 'cifar'
 if dataset == 'cifar':
     img_size = 3 * 32 * 32
 else:
     img_size = 3 * 28 * 28
 
+#num_items = 100 # number of data in each client
 local_bs = 10
 local_ep = 10
 optimizer = 'sgd'
 lr = 0.01
 
-total_global_round = 5
+total_global_round = 20
 
+M_M_SIZE = 1000 * 1024 * 1024
 
 class DatasetSplit(Dataset):
     def __init__(self, dataset, idxs):
@@ -117,8 +122,7 @@ class LocalUpdate(object):
         return accuracy, loss
 
 def sample_iid(data, client_nums):
-    num_items = 100
-    #num_items = int(len(data)/client_nums)
+    num_items = int(len(data)/client_nums)
     all_idxs = [i for i in range(len(data))]
     dict_users = set(np.random.choice(all_idxs, num_items, replace=False))
     return list(dict_users)
@@ -167,34 +171,82 @@ def get_data(dataset):
     user_group = sample_iid(train_dataset, client_nums)
     return train_dataset, test_dataset, user_group
 
+def regis(stub, client_id):
+    feature = stub.Regis(FederatedML_pb2.Mark(flag=client_id))
+    return feature.flag
 
-def get_model(stub, op, global_round):
-    feature = stub.GetModel(FederatedML_pb2.Option(op=op, gr=global_round))
-    model = base64.b64decode(feature.model)
+def get_ready(stub, client_id, global_round):
+    feature = stub.GetReady(FederatedML_pb2.Option(id=client_id, gr=global_round))
+    return feature.flag
+
+def get_model(stub, op, client_id, global_round):
+    feature = stub.GetModel(FederatedML_pb2.Option(op=op, id=client_id, gr=global_round))
+    if op == 0:
+        model = pickle.loads(base64.b64decode(feature.model.encode()))
+    else:
+        model = base64.b64decode(feature.model)
     return model
 
-def send_model(stub, modelString, client_id, global_round):
-    feature = stub.SendModel(FederatedML_pb2.Model(model=modelString, id=client_id, gr=global_round))
+def send_model(stub, modelString, client_id, global_round, local_loss):
+    feature = stub.SendModel(FederatedML_pb2.Model(model=modelString, id=client_id, gr=global_round, ll=local_loss))
     if feature.value == 1:
         print("Model Sent")
     else:
         print("An error occurs")
 
+MESSAGE_BLOCK_SIZE = 1024 * 1024
 
+def get_model_stream(stub, op, client_id, global_round):
+    feature = stub.GetModel_stream(FederatedML_pb2.Option(op=op, id=client_id, gr=global_round))
+    models = ""
+    for _ in feature:
+        models += _.model
+    if op == 0:
+        modelget = pickle.loads(base64.b64decode(models.encode()))
+    else:
+        modelget = base64.b64decode(models)
+    return modelget
 
+def generate_model(modelString, client_id, global_round):
+    msg = FederatedML_pb2.Model()
+    msg.id = client_id
+    msg.gr = global_round
+    blocks = math.ceil(len(modelString) / MESSAGE_BLOCK_SIZE)
+    for i in range(blocks):
+        msg.model = modelString[i*MESSAGE_BLOCK_SIZE:(i+1)*MESSAGE_BLOCK_SIZE]
+        yield msg
+
+def send_model_stream(stub, modelString, client_id, global_round):
+    model_stream = generate_model(modelString, client_id, global_round)
+    feature = stub.SendModel_stream(model_stream)
+    if feature.value == 1:
+        print("Model Sent")
+    else:
+        print("An error occurs")
 
 def run():
     print("FL start!")
+    t_s = time.time()
     print("-------------- Generate Data --------------")
     train_set, test_set, user_groups = get_data(dataset)
+    flag = 1
     local_progress = LocalUpdate(dataset=train_set, idxs=user_groups)
-    with grpc.insecure_channel('localhost:50051') as channel:
+    options = [('grpc.max_send_message_length', M_M_SIZE), ('grpc.max_receive_message_length', M_M_SIZE)]
+    with grpc.insecure_channel('130.238.28.39:50051', options=options) as channel:
         stub = FederatedML_pb2_grpc.FederatedMLStub(channel)
         print("-------------- Initialize Model --------------")
-        local_model = get_model(stub, 0, 0)
-        with open('local_model.pkl',"wb") as file:
-            file.write(local_model)
-            print("Successfully saved model 0")
+        t1 = time.time()
+        while 1:
+            flag = regis(stub, client_id)
+            print(flag)
+            if flag:
+                time.sleep(1)
+            else:
+                local_model = get_model(stub, 0, client_id, 0)
+                break
+        print("time used %f:" % (time.time()-t1))
+        torch.save(local_model, 'local_model.pkl')
+        print("Successfully saved model 0")
         print("-------------- Start Train --------------")
         for i in range(1, total_global_round + 1):
             print("Global round: ", i)
@@ -204,13 +256,63 @@ def run():
             torch.save(new_model, 'tmp_model.pkl')
             with open('tmp_model.pkl', 'rb') as file:
                 encoing_string = base64.b64encode(file.read())
-                send_model(stub, encoing_string, client_id, i)
+                while 1:
+                    flag = regis(stub, client_id)
+                    if flag:
+                        time.sleep(1)
+                    else:
+                        send_model(stub, encoing_string, client_id, i, loss)
+                        break
             print("-------------- Get New Global Model--------------")
-            local_model = get_model(stub, 1, i)
+            while 1:
+                flag_r = get_ready(stub, client_id, i)
+                if flag_r:
+                    time.sleep(1)
+                else:
+                    break
+            while 1:
+                flag = regis(stub, client_id)
+                if flag:
+                    time.sleep(1)
+                else:
+                    local_model = get_model(stub, 1, client_id, i)
+                    break
+            with open('local_model.pkl',"wb") as file:
+                file.write(local_model)
+                print("Successfully saved model" + str(i))
+    t_e = time.time()
+    print("total_time_used:", t_e-t_s)
+
+def run_stream():
+    print("FL start!")
+    print("-------------- Generate Data --------------")
+    train_set, test_set, user_groups = get_data(dataset)
+    local_progress = LocalUpdate(dataset=train_set, idxs=user_groups)
+    options = [('grpc.max_send_message_length', M_M_SIZE), ('grpc.max_receive_message_length', M_M_SIZE)]
+    with grpc.insecure_channel('130.238.28.39:50051', options=options) as channel:
+        stub = FederatedML_pb2_grpc.FederatedMLStub(channel)
+        print("-------------- Initialize Model --------------")
+        t1 = time.time()
+        local_model = get_model_stream(stub, 0, client_id, 0)
+        print("time used %f:" % (time.time()-t1))
+        torch.save(local_model, 'local_model.pkl')
+        print("Successfully saved model 0")
+        print("-------------- Start Train --------------")
+        for i in range(1, total_global_round + 1):
+            print("Global round: ", i)
+            local_model = torch.load('local_model.pkl')
+            print("Load Model Successfully!")
+            new_model, loss = local_progress.update_weights(model=copy.deepcopy(local_model), global_round=i, optimizer=optimizer, lr=lr, local_ep=local_ep)
+            torch.save(new_model, 'tmp_model.pkl')
+            with open('tmp_model.pkl', 'rb') as file:
+                encoing_string = base64.b64encode(file.read())
+                send_model_stream(stub, encoing_string, client_id, i)
+            print("-------------- Get New Global Model--------------")
+            local_model = get_model_stream(stub, 1, client_id, i)
             with open('local_model.pkl',"wb") as file:
                 file.write(local_model)
                 print("Successfully saved model" + str(i))
 
-
 if __name__ == '__main__':
     run()
+    #run_stream()
